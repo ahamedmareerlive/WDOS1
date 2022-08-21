@@ -62,11 +62,7 @@
             <li>Constructing paths for tourists observations without making trouble for the animals their free movement in the forest.</li>
             
          </ul>
-
-                
         </div>
-
-
         <div class="donate-form">
          <form id="donate-form" method="post">
             <div class="form-item">
@@ -98,7 +94,7 @@
            
             <div class="form-item">
                <label>Card Number</label>
-               <input type="text" name="card"   id="cardNum" maxlength="16" class="form-item-input" required>
+               <input type="number" name="card" onKeyPress="if(this.value.length==12) return false;"  id="card" class="form-item-input"  required>
             </div>
             
             <div class="form-item">

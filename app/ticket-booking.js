@@ -1,3 +1,8 @@
+let behaviour={
+    'choice-of-ticket':{message:["ticket is required","ok"]},
+    'no-of-pass':{message:["number of pass is required","ok"]},
+    'duration':{message:["duration is required","ok"]}
+};
 window.onload =function(){
     //Element
     let passEle=document.getElementById("choice-of-ticket");
@@ -74,6 +79,78 @@ window.onload =function(){
 
     //Load initial data
     renderOrderSummary();
+
+    //validation code
+    let isEmpty=(v)=> v==undefined || v==""?true:false;
+
+    function onChangeTicketBookEle(e){
+        let key=e.target.id;
+        let v=e.target.value;
+        switch(key){
+            case "choice-of-ticket":{
+                required(v,key,(state)=>{
+                    state==false&& focus(key);
+                });
+                break;
+            }
+            case "no-of-pass":{
+                required(v,key,(state)=>{
+                    state==false&& focus(key);
+                });
+                break;
+            }
+            case "duration":{
+                required(v,key,(state)=>{
+                    state==false&& focus(key);
+                });
+                break;
+            }
+           
+        }
+    
+    }
+    function required(v,key,resolve=(state)=>{}){
+        let okMessage=behaviour[key]["message"][1]!=undefined?behaviour[key]["message"][1]:"ok";
+        let errorMessage=behaviour[key]["message"][0]!=undefined?behaviour[key]["message"][0]:"";
+        let ok=0;
+        isEmpty(v)?ok=0:ok=1;
+        showMessage(ok==1?okMessage:errorMessage,ok,key);
+        resolve(ok==1?true:false);
+    }
+
+    function showMessage(message="",ok=0,key=""){
+        let ele=document.getElementById(`${key}-message`);
+        ele.innerText=message;
+        if(ok==0){
+            ele.classList.remove("ok");
+            ele.classList.add("error");
+        }
+        else{
+            ele.classList.remove("error");
+            ele.classList.add("ok");
+        }
+        !ele.classList.contains("show")&&ele.classList.add("show");
+       
+    }
+
+    function finalRequiredCheck(key={}){
+        let finalState=true;
+        Object.keys(key).map((v)=>{
+            let ele=document.getElementById(v);
+            
+            if(!ele.disabled){
+                if(isEmpty(ele.value)){
+                    finalState=false;
+                }
+                required(ele.value,v);
+            }
+           
+            
+        });
+    
+        return finalState;
+    }
+
    
 
     function calculateExtraCharge(pass="",duration="",noOfPer=1){
@@ -88,6 +165,12 @@ window.onload =function(){
         }
         else if((pass=="FOREGIN_ADULT" && duration=="FULL_DAY") || (pass=="FOREGIN_CHILD" && duration=="FULL_DAY")){
             return noOfPer*1000; 
+        }
+        else if((pass=="LOCAL_ADULT" && duration=="_2_DAY") || (pass=="LOCAL_CHILD" && duration=="_2_DAY")){
+            return noOfPer*1000; 
+        }
+        else if((pass=="FOREGIN_ADULT" && duration=="_2_DAY") || (pass=="FOREGIN_CHILD" && duration=="_2_DAY")){
+            return noOfPer*2000; 
         }
     }
 
@@ -273,18 +356,21 @@ window.onload =function(){
         formData.passAmount=specification.pass[formData.passType];
         formData.extraCharge= calculateExtraCharge(formData.passType,formData.duration,formData.numberOfPass);
         updateSummary();
+        onChangeTicketBookEle(e);
     });
 
     noOfPassEle.addEventListener("change",(e)=>{
         formData.numberOfPass=e.target.value!=""&& e.target.value>0?e.target.value:1;
         formData.extraCharge= calculateExtraCharge(formData.passType,formData.duration,formData.numberOfPass);
         updateSummary();
+        onChangeTicketBookEle(e);
     })
 
     durationEle.addEventListener("change",(e)=>{
         formData.duration=e.target.value;
         formData.extraCharge= calculateExtraCharge(formData.passType,formData.duration,formData.numberOfPass);
         updateSummary();
+        onChangeTicketBookEle(e);
     });
 
     noOfoodToken.addEventListener("change",(e)=>{
@@ -294,11 +380,18 @@ window.onload =function(){
     });
     addOrderBtn.addEventListener("click",(e)=>{
         e.preventDefault();
-        order.push(createOrder());
-        renderOrder();
-        createOrderForm.reset();
-        resetFormData();
-        updateSummary();
+        
+        
+        if(finalRequiredCheck(behaviour)){
+            order.push(createOrder());
+            renderOrder();
+            createOrderForm.reset();
+            resetFormData();
+            updateSummary();
+        }
+        
+        
+        
     })
 
     placeOrderBtn.addEventListener("click",(e)=>{
@@ -324,7 +417,7 @@ window.onload =function(){
     
     })
 
-
+  
 
 
     //code...........
