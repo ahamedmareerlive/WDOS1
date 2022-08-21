@@ -62,39 +62,56 @@
             <li>Constructing paths for tourists observations without making trouble for the animals their free movement in the forest.</li>
             
          </ul>
+
+                
         </div>
+
+
         <div class="donate-form">
-         <form>
+         <form id="donate-form" method="post">
             <div class="form-item">
-               <label>Full Name</label>
-               <input type="text" name="fname">
+               <label>Name</label>
+               <input type="text" name="name" class="form-item-input" required>
             </div>
             <div class="form-item">
-               <label>Reason</label>
-               <input type="text" name="fname">
-            </div>
+              <label>Address</label>
+              <input type="text" name="address" class="form-item-input">
+           </div>
+           <div class="form-item">
+            <label>Reason</label>
+            <input type="text" name="reason" class="form-item-input">
+         </div>
+           <div class="form-item">
+            <label>Ammount</label>
+            <select name="amount" id="amount" class="form-item-input" onChange="if(this.value==''){alert('amount must be select!')}">
+              <option value=""> --- select one --- </option>
+               <option value="100">100</option>
+               <option value="250">250</option>
+               <option value="500">500</option>
+               <option value="1000">1000</option>
+               <option value="2500">2500</option>
+               <option value="5000">5000</option>
+               <option value="10000">10000</option>
+            </select>
+         
+         </div>
+           
             <div class="form-item">
                <label>Card Number</label>
-               <input type="text" name="fname">
+               <input type="text" name="card"   id="cardNum" maxlength="16" class="form-item-input" required>
             </div>
-            <div class="form-item">
-               <label>Ammount</label>
-               <input type="text" name="fname">
-            </div>
+            
             <div class="form-item">
                <label>Date of card Expiry</label>
-               <input type="date" name="fname">
+               <input type="date" name="exp-date" class="form-item-input" required>
             </div>
             <div class="form-item">
                <label>CCV</label>
-               <input type="text" name="fname">
-            </div><div class="form-item">
-               <label>First Name</label>
-               <input type="text" name="fname">
+               <input type="number" name="ccv"   onKeyPress="if(this.value.length==3) return false;" min="0" class="form-item-input"  required>
             </div>
 
             <div class="f-submit-area">
-               <input type="button" value="Donate" class="f-sub-btn">
+               <input type="submit" value="Donate" class="f-sub-btn" id="donate">
             </div>
 
           </form>
@@ -155,6 +172,6 @@
     </footer>
    
     <!--END FOOTER-->
-
+    <script src="./app/donate.js" text="text/javascript"></script>
   </body>
 </html>
