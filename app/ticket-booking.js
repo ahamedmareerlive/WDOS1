@@ -1,10 +1,14 @@
+
+//all required validation input feild message element. 
 let behaviour={
     'choice-of-ticket':{message:["ticket is required","ok"]},
-    'no-of-pass':{message:["number of pass is required","ok"]},
+    'no-of-pass':{message:["number of pass is required","ok"] ,numberCheck:true },
     'duration':{message:["duration is required","ok"]}
 };
+
+
 window.onload =function(){
-    //Element
+    //Element 
     let passEle=document.getElementById("choice-of-ticket");
     let noOfPassEle=document.getElementById("no-of-pass");
     let durationEle=document.getElementById("duration");
@@ -22,8 +26,9 @@ window.onload =function(){
     
     
     
-    
+    //this order array hold all the order in runtime
     let order=[];
+    //this orderSummary object hold order summary data.
     let orderSummary={
         totalOrder:0,
         costOfCurrentOrder:0,
@@ -77,11 +82,15 @@ window.onload =function(){
         }
     }
 
+    
+
     //Load initial data
     renderOrderSummary();
 
     //validation code
     let isEmpty=(v)=> v==undefined || v==""?true:false;
+
+    
 
     function onChangeTicketBookEle(e){
         let key=e.target.id;
@@ -95,7 +104,20 @@ window.onload =function(){
             }
             case "no-of-pass":{
                 required(v,key,(state)=>{
-                    state==false&& focus(key);
+                   
+                    if(state==true){
+                        
+                        if( v <= 0 ){
+                            showMessage("pass must be greater then zero",0,key);
+                            focus(key);
+                        }
+                    }
+                    else{
+                        state==false&& focus(key);
+                    }
+
+                    
+                    
                 });
                 break;
             }
@@ -138,11 +160,22 @@ window.onload =function(){
         Object.keys(key).map((v)=>{
             let ele=document.getElementById(v);
             
-            if(!ele.disabled){
-                if(isEmpty(ele.value)){
+            if(!ele.disabled ){
+                if( isEmpty(ele.value) ){
                     finalState=false;
                 }
-                required(ele.value,v);
+                
+                required(ele.value,v,(state)=>{
+                    if(v=="no-of-pass" ){
+                        if(state==true){
+                            if( ele.value <= 0 ){
+                                finalState=false;
+                                showMessage("pass must be greater then zero",0,v);
+                            }
+                        }
+                    }
+                    
+                });
             }
            
             
@@ -197,7 +230,7 @@ window.onload =function(){
     }
 
     
-
+    /*Display the orderd item in ui*/
     function renderOrder(){
         let DOM="";
         order.map((v)=>{
@@ -221,7 +254,7 @@ window.onload =function(){
                     </div>
                     <div class="order-card-item">
                       <span>Duration  : </span>
-                      <span>${v.duration}</span>
+                      <span>${v.duration==undefined?'no':v.duration }</span>
                     </div>
                     <div class="order-card-item">
                     <span>ExtraCharge  : </span>
@@ -244,7 +277,7 @@ window.onload =function(){
         })
         orderCardRoot.innerHTML=DOM;
     }
-
+    /*Display important 4 order summary*/
     function renderOrderSummary(){
         let DOM="";
         const {summaryCardAliases}=specification;
@@ -262,7 +295,7 @@ window.onload =function(){
     function placeOrder(){
        
         if(order.length<=0){
-            return "Order doe'nt have any items.";
+            return "Order doesn't have any items.";
         }
         else{
             localStorage.removeItem("favourite")
@@ -328,26 +361,34 @@ window.onload =function(){
     function calculateLoyaltyAmount(){
         let orderCount=order.length;
         let loyality=0;
-        if(orderCount>3){
-            loyality=specification.loyaltyPoint*orderCount;
+        let prevLoyalty=localStorage.getItem("loyalty")?JSON.parse(localStorage.getItem("loyalty")):0;
+
+       
+        
+        if(prevLoyalty){
+            orderCount?loyality=specification.loyaltyPoint*orderCount:loyality=0;
         }
-        return loyality;
+        else{
+            if(orderCount>3){
+                loyality=specification.loyaltyPoint*orderCount;
+            }
+        }
+       
+        
+        return loyality+prevLoyalty;
     }
     
-    document.removeCardItem=(orderNo)=>{
-        removeOrderCardData(orderNo)
-        renderOrder();
-        updateSummary();
-    }
-    
-    
-    
-   
+    //all button events
     passEle.addEventListener("change",(e)=>{
         formData.passType=e.target.value;
         if(formData.passType=="ANNUAL_LOCAL" || formData.passType=="ANNUAL_FOREIGN"){
             durationEle.disabled = true;
             noOfoodToken.disabled = true;
+            noOfoodToken.value="";
+            durationEle.value="";
+            formData.extra.foodToken=0;
+            formData.extra.foodTokenAmount=0;
+            formData.duration="";
         }
         else{
             durationEle.disabled = false;
@@ -360,10 +401,11 @@ window.onload =function(){
     });
 
     noOfPassEle.addEventListener("change",(e)=>{
-        formData.numberOfPass=e.target.value!=""&& e.target.value>0?e.target.value:1;
+        formData.numberOfPass=e.target.value!=""&& e.target.value>0?e.target.value:0 ;
         formData.extraCharge= calculateExtraCharge(formData.passType,formData.duration,formData.numberOfPass);
         updateSummary();
         onChangeTicketBookEle(e);
+        
     })
 
     durationEle.addEventListener("change",(e)=>{
@@ -379,8 +421,8 @@ window.onload =function(){
         updateSummary();
     });
     addOrderBtn.addEventListener("click",(e)=>{
-        e.preventDefault();
         
+        e.preventDefault();
         
         if(finalRequiredCheck(behaviour)){
             order.push(createOrder());
@@ -389,8 +431,7 @@ window.onload =function(){
             resetFormData();
             updateSummary();
         }
-        
-        
+
         
     })
 
@@ -412,12 +453,24 @@ window.onload =function(){
     });
     checkLoyaltyBtn.addEventListener("click",(e)=>{
         e.preventDefault();
+        localStorage.setItem("loyalty",calculateLoyaltyAmount());
+        orderSummary.loyalty=JSON.parse(localStorage.getItem("loyalty"));
         updateSummary();
-        orderSummary.loyalty=calculateLoyaltyAmount();
     
     })
+    document.removeCardItem=(orderNo)=>{
+        removeOrderCardData(orderNo)
+        renderOrder();
+        updateSummary();
+    }
+    
+    
+    
+   
 
-  
+
+    
+    
 
 
     //code...........
